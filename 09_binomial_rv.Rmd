@@ -1,0 +1,202 @@
+---
+title: "The Binomial Random Variable"
+author: "P. Lombardo"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(patchwork)
+source('source_files/general.R')
+source('source_files/binomial.R')
+```
+
+## Is the mystery coin fair?
+Let's return to your sample from the mystery coin:
+```{r eval = F}
+# In the set.seed() function below, put your birthday.
+# for e.g., I might use set.seed(219) for a February 19th birthday.
+set.seed(...)
+my_flips<-mystery_coin(30)
+my_flips
+```
+
+One method of gathering evidence to answer this question is to compute a *special kind of probability*: 
+
+> Assuming the coin *is* fair, what is the probability of seeing a samples like mine?
+
+**Exercise.** 
+Consider these critical thinking questions:
+
+* If we are gathering evidence *against* the coin being fair, would this probability be large or small?
+
+* If the coin is in fact fair, would this probability be large or small?
+
+
+Great; now that we have our argument planned out, we can proceed.  But... how on earth do we compute that probability?
+
+There are a few methods, but today we'll explore a new random variable that will help us compute this probability: **The Binomial Random Variable**.
+
+## Binomial Random Variable
+describe it, set up our situation
+
+```{r}
+Xdist <-data.frame(space = 0:30,
+                   pmf = dbinom(0:30,30,0.5))
+discrete_pmf_plot(Xdist)+
+    geom_vline(xintercept = sum(my_flips))
+```
+
+**Exercise** Assuming the coin is fair, what is the probability of having ____ or fewer heads in a total of 30 flips?
+```{r}
+#1 using the space and pmf variables inside Xdist
+sum(Xdist$pmf[Xdist$space<=sum(my_flips)])
+
+#2 using our pre-loaded cdf
+pbinom(sum(my_flips), 30, .5)
+
+#3 using the Xdist dataframe as above and dplyr
+Xdist %>%
+    filter(space <= sum(my_flips)) %>%
+    pull(pmf) %>%
+    sum()
+```
+**Exercise.** Create a new binomial random variable `Ydist`, but rather than setting $p=0.5$, set $p$ equal to the relative frequency of heads in `my_flips`.
+
+* Make the PMF plot of `Ydist` and add the vertical line at the number of heads in your sample.
+* Compute the probability that we are less than or equal to your number of heads  in your sample.
+
+(*Copy and paste is your friend*)
+
+```{r}
+# Place code here
+# change your distribution to Ydist
+
+```
+
+When our assumptions are pretty close to correct (as in the second exercise here), what happens?
+
+* The PMF plot looks like ....
+
+* The probability of being less than my count is ...
+
+
+
+## A preference for *evidence against*
+The work we are seeing above is the basic idea behind hypothesis testing, which we will define more formally in due time. It helps to get used to a few ideas early, however:
+
+1. We only use hypothesis testing *when we believe an assumption is **wrong**.* In other words, when hypothesis testing, we always hope to provide evidence *against* an assumption by computing a probability that is small.
+
+2. We use the following probability for our "evidence against" an assumption: 
+
+> "Evidence Against" is quantified by *the probability of seeing our sample **or something more extreme**, given that the proposed random variable model is correct.*
+
+How we define "more extreme" depends on what we feel is actually true about the model. Let's consider an example.  Suppose we're testing if a coin is fair, and we plan to collect 30 flips of the coin. If the model is correct, $p=0.5$, we should expect to see around 15 heads (50\% of 30), with some variation of course. 
+
+There are three ways to "believe this model is wrong":
+
+1. *Left-tailed Test:* $p < 0.5$, so the coin is unfair and should produce fewer heads. We would then expect the count of heads in our sample, call it $c$, to be less than 15.  In this scenario, we define "more extreme" as less than or equal to $c$. In other words, for evidence we would look at $P(X \leq c)$.
+
+2. *Right-tailed Test:* $p > 0.5$, so the coin is unfair and should produce more heads. We would then expect the count of heads in our sample ($c$) to be more than 15.  In this scenario, we define "more extreme" as greater than or equal to $c$. In other words, for evidence we would look at $P(X \geq c)$.
+
+3. *Two-tailed Test:* $p\neq 0.5$, so the coin is unfair, but we do not have a sense of whether there should be more or fewer heads than 15 in our sample.  In this scenario, our "extreme region" must account for either side. We define "more extreme" as any value *as far or farther from 15 as our observed $c$*: $P|X - 15|\geq |15-c|$.
+
+These inequalities are much friendlier when we visualize them:
+```{r echo =F}
+HT_regions_binomial()
+```
+
+
+## Practice gathering "evidence against" a model
+
+### Scenario 1:
+Suppose a colleague of ours claims that only 10\% of Endicott students play a collegiate sport.  We believe do not believe that estimate is correct, so we plan to collect some "evidence against" that model with a sample of 40 randomly selected students.
+
+1. Using `S1dist`, define the binomial model that assumes our colleague is correct.
+```{r}
+S1dist<-data.frame(
+    space = ...,
+    pmf = ...
+)
+```
+
+2. We specifically believe that a *higher percentage* of Endicott students plays a collegiate sport. When we collect our sample, we see that 9 students in our sample of 40 report that they are on a collegiate team.
+
+* What kind of test is this? 
+
+* What probability should we compute?
+
+3. Compute the probability and comment on whether this does in fact provide evidence *against* our colleague's claim.
+```{r}
+#place code here. You can use either S1dist or pbinom()
+```
+
+
+## Scenario 2:
+At a recent "Gull Gathering", Campus Safety reported that 35\% of the student body received a parking ticket last semester.  Some students you talk to think that's too high, while others believe it's too low, so at the end of it all you're unsure of *how* this estimate is wrong.
+
+1. Using `S2dist`, define the binomial model that assumes the campus safety statement is correct.
+```{r}
+S2dist<-data.frame(
+    space = ...,
+    pmf = ...
+)
+```
+
+2. You're confident that the estimate of 35\% is wrong, but your not sure whether this is too low or too high. We collect a random sample of 60 students, and find that 28 of the students received a ticket.
+
+* If Campus Safety is right that 35\% received a parking ticket, how many students in our sample would we expect to have received a ticket? (Subject to some variation of course...)
+
+* What kind of test is this? 
+
+* What probability should we compute?
+
+3. Compute the probability and comment on whether this does in fact provide evidence *against* our colleague's claim.
+```{r}
+#place code here. You can use either S2dist or pbinom()
+```
+
+
+## Some concluding remarks
+We will revisit hypothesis testing in more detail soon, but starting next class we are going to move on to learn about some more probability tools.
+
+Even though we will move away from hypothesis testing for the next few lessons, please understand that this lesson is really important for several reasons:
+
+1. This lesson really highlights the connection between hypothesis testing (and statistics) and underlying probability models.  This is where the math connects to the data analysis, and that's powerful information to understand!
+2. We will see this connection between probability and statistical analysis appear again and again, so these ideas permeate the rest of the course!
+3. This lesson lays the groundwork for the *logic* behind hypothesis testing early. As a result, when we revisit it in the future, it will be easier to pick up and understand.
+4. Here we see a very practical application of random variables (specifically, the binomial random variable).
+
+So, basically, please do your best to understand what happened in this lesson and come ask questions if you are having trouble!
+
+Lastly, I'm sure the follwoing question is already forming in your bright minds:
+
+> How small does a probability have to be in order for it to be considered "enough evidence against" the assumed model?
+
+Surely we will come accross some "borderline" cases: suppose we make the assumption that $p = 0.37$, and when we flip the coin 30 times we observe 8 heads.
+```{r echo=F}
+# Don't worry about this code right away, but come back to it
+total_flips<-8
+tempdist<-data.frame(space = 0:30,
+           pmf = dbinom(0:30,30,0.38))
+pval<-round(tempdist %>%
+    filter(space <= total_flips) %>%
+    pull(pmf) %>%
+    sum(),3)
+
+discrete_pmf_plot(tempdist)+
+    geom_col(data = data.frame(
+        x = tempdist$space[1:(total_flips+1)],
+        y = tempdist$pmf[1:(total_flips+1)]
+    ), aes(x = x, y =y), fill = 'red',alpha =.8)+
+    geom_vline(xintercept = total_flips,color='red3')+
+    annotate("text",x=22,y=.1,
+             label=paste("P(num heads <= ",total_flips,")\n = ",pval,sep=""),
+             size =5,color='red')
+```
+Is this enough evidence to suggest our model assumption, $p = 0.37$, is wrong?
+
+In due time...

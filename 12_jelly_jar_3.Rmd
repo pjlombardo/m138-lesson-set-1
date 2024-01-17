@@ -1,0 +1,227 @@
+---
+title: "A Jar of Jelly Beans, part 3"
+subtitle: "The Normal Distribution"
+author: "P. Lombardo"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Loading packages, etc.
+```{r messages = F, warning=F}
+library(tidyverse)
+library(patchwork)
+source('source_files/general.R')
+source('source_files/normal_1.R')
+jelly_jar<-read.csv('data/jelly_jar.csv',header = T, stringsAsFactors = T)
+set.seed(222)
+samp_dist<-sapply(1:10000,
+                  function(x){sum(sample(jelly_jar$color,200)=="green")/200})
+```
+
+### The Jelly Jar Challenge
+Recall our setting once again: We have a *giant* jar of jelly beans with *over 20,000 beans* inside. I presented a few versions of the game, but essentially our goal is to try guess the percentage of green jelly beans in the jar based on a sample from the jar.
+
+**Some themes:**
+
+* Having more jelly beans in your sample leads to ______ guesses, so it's ______ to work on a team and combine your samples.
+
+* If we are lucky enough to gain access to a *sampling distribution* of sample percentages, we would notice:
+    * The mean of the percents in would be ______ the actual percentage of green jellies.
+    * The *shape* of the sampling distribution would be ______.
+    * We could use ________ to give us a sense of where the "most common" sample percentages fall.
+    
+* With knowledge of the "middle, common scores" we can guess *an interval* that has a very good chance of containing ______, but is also not any _____ than it needs to be.
+
+
+
+***
+
+## Our fundamental problem
+All of our approaches, and especially the "guess an interval (or region)" approach, required that we have information about the sampling distribution of sample percentages. *This rarely happens!*
+
+Luckily for us, there is a beautiful theorem from probability that essentially gives us access to decent models for common sampling distributions: The Central Limit Theorem. But before we can talk about that, we need to learn about *The Normal Distribution* and how it works.
+
+### The Normal Distribution
+This is a *continuous random variable*.
+
+> Basic idea: 
+>
+> * the space is a continuous interval ($x$-axis), and
+> * Area Under Curve == Probabilities.
+
+For the normal distributions, we also know:
+
+* its "bell-shaped" and symmetric;
+* we can control the location of the peak by adjusting the $\mu$ parameter;
+* we can adjust how "spread out" the probabilities are using the $\sigma$ parameter.
+
+Let's look at this visually first with a Shiny App.
+
+### Probabilities for the normal distribution
+As a continuous random variable, we compute probabilities by finding areas under the density curve.  For example, if we have a normal distribution $X$ with $\mu = 1.5$ and $\sigma = 3$, then we can visualize $P(0 \leq X \leq 6)$ as follows:
+```{r}
+norm_vis(0,6,mu =1.5, sigma = 3, tail="middle")
+```
+
+#### Optional
+Other examples using the helper function `norm_vis()`
+```{r}
+p1<-norm_vis(4,mu =1.5, sigma = 3, tail="lower")
+p2<-norm_vis(0,6,mu =1.5, sigma = 3, tail="middle")
+p3<-norm_vis(5.5,mu =1.5, sigma = 3, tail="upper")
+#patchwork combining plots
+(p1+p3)/p2
+```
+
+****
+    
+## Using pnorm to compute probabilities
+For statistics, we typically care about computing three "types" of probabilities.
+
+1. $P(X\leq a)$ (a lower tail):  Here, `pnorm()` is already set up to work for us. We simply use `pnorm(a, mu, sigma)`, where `mu` and `sigma` are the parameters we chose for our model.
+
+2. $P(X\geq a)$ (an upper tail): Since `pnorm()` only computes "less than" probabilities; we have to use use an equality I call the "one minus trick": $$P(X\geq a) = 1 - P(X\leq a).$$ Hence, for "greater than" probabilities, we use `1 - pnorm(a, mu, sigma)`.
+
+3. $P(a \leq X \leq b)$ (a "middle area"): A similar argument as above leads us to the "big minus little trick: $$P(a\leq X \leq b) = P(X\leq b) - P(X\leq a).$$ Hence, for "middle area" probabilities, we use `pnorm(b,mu,sigma) - pnorm(a,mu,sigma)`.
+
+#### Practice while comparing
+Let's practice our probability computations while verifying that a normal distribution is a good model for our sampling distribution of sample percentages (`samp_dist`). For reasons we'll see soon, use the following parameters for the normal random variable model:
+
+* `mu = 0.0914643` and `sigma = 0.02038364`; we'll store them as variables for easy recall.
+```{r}
+our_mu<-0.0914643
+our_sigma<-0.02038364
+our_mu;our_sigma
+```
+(*Yes, there is a "magical formula" that gives me these values!*)
+
+**Exercise 1.** Find the rel. frequency of sample percentages that are less than 0.111 in the data.  Then, compute the analogous probability using our assumed normal r.v. model.
+```{r}
+# rel. frequency
+
+# probability using the normal rv model
+
+```
+**Exercise 2.** Find the rel. frequency of sample percentages that are between 0.0814 and 0.0922 in the data.  Then, compute the analogous probability using our assumed normal r.v. model. (*Hint:* to find the rel. frequency, consider a *difference* of two counts....)
+```{r}
+# rel. frequency
+
+# probability using the normal rv model
+
+```
+
+
+**Exercise 3.** Find the rel. frequency of sample percentages above 0.1021 in the data.  Then, compute the analogous probability using our assumed normal r.v. model.
+```{r}
+# rel. frequency
+
+# probability using the normal rv model
+
+```
+
+**Main Idea:** Setting aside that you don't know where I came up with the `mu` and `sigma` parameters, 
+
+* *how well did the normal model do at "predicting" the rel. frequencies in our sampling distribution?*  
+* What did you notice in the comparisons between probabilities and rel. frequencies above?
+
+<place answer here>
+
+
+### Percentiles for random variables
+Let's do one more comparison.  We know that we can use `quantile()` to find a percentile for a data set, like `samp_dist`.  We can also define percentiles for random variables like the normal distribution.
+
+> The $k$-th percentile of the normal distribution, $P_k$, is simply the measurement in the space of our random variable $X$ such that $P(X \leq P_k) = k/100$.
+
+For example,
+```{r}
+pnorm(0.101, our_mu,our_sigma)
+```
+So, we would call 0.101 the 68-th percentile of our normal random variable model.
+
+In `R`, we can compute a percentile for a normal distribution quite easily with `qnorm()`:
+```{r}
+qnorm(0.68, our_mu,our_sigma)
+```
+
+**Exercise 4.** Compare the 80-percentile of the sampling distribution to the 80-th percentile of our normal r.v. model (i.e. normal r.v. using `our_mu` and `our_sigma`):
+```{r}
+#place code here.
+```
+
+
+## Summary and bonus plots!
+Here's the big idea.  With the right choice of parameters for `mu` and `sigma`, we can use a *normal random variable* to effectively replace the sampling distribution of sample percentages.  This may be beneficial because:
+
+* The normal distribution is a theoretical construct; it does not require any arduous sampling loops or computational strength.
+* The probabilities coming from our normal distribution give us pretty accurate estimates of important information about the sampling distribution of percents. Specifically:
+    * `mu` is essentially the mean of all the sample percentages;
+    * `sigma` is essentially the standard deviation of the sample percentages;
+    * the *percentiles* of the sampling distribution correspond to the percentiles of the normal distribution; and
+    * the rel. frequencies of sample percentages in a certain region correspond to the probability of the same region for our normal random variable.
+    
+In short, everything we've done so far using our simulated sampling distribution can be mirrored using the right normal distribution instead. Most importantly, that includes 
+
+* constructing a confidence interval, and
+* gathering "evidence against" a claim using an appropriate probability.
+
+
+### A comparison plot
+For any potential value for a sample percentage, say $c$, we can compare the following
+
+* `sum( samp_dist < c)/length(samp_dist)`, the relative frequency of observed sample percentages less than the one provided;
+* `pnorm(c, our_mu, our_sigma)`, the CDF value, or $P(X\leq c)$ as computed by our normal r.v. model.
+
+```{r echo = F}
+pts<-seq(0,.2, by = 0.001)
+rel_freq<-sapply(pts, function(x){sum(samp_dist<x)/length(samp_dist)})
+norm_probs<-sapply(pts, function(x){pnorm(x, mean = our_mu,
+                                          sd = our_sigma)})
+
+ggplot(data = data.frame(x = pts,
+                         rf = rel_freq,
+                         pr = norm_probs),
+       aes(x= x))+
+    geom_line(aes(y=rf, color='"CDF" based on a Sampling Distribution'),
+              linewidth=1.1, alpha=.8)+
+    geom_line(aes(y=pr,color='Normal R.V. CDF'))+
+    scale_color_manual("",values = c("red","blue")) + 
+    labs(x="Possible Sample Percentages",
+         y="Probability or Rel. Frequency\nLess Than a Sample Percentage",
+         title="Comparing CDFs by Probability Model and Sampling Distribution")+
+    theme_bw()+theme(legend.position = "top")
+```
+
+We could compare percentiles as well, but the picture is exactly the same but with the axes switched.
+
+We should also look at a *density* histogram of our sampling distribution with our normal random variable model over-layed:
+
+```{r echo = F}
+ggplot(data = data.frame(x = samp_dist),
+       aes(x = x))+
+    geom_histogram(aes(
+        # have to add a special `y` aesthetic to make this
+        # a "density" histogram (i.e. on the same scale as
+        # our normal distribution
+        y = after_stat(density),
+        fill="Histogram of\nSampling Distribution"
+        ),
+        color='white', bins = 32
+    )+
+    stat_function(aes(color="Normal R.V. Model"),
+                  fun = dnorm,
+                  geom="line",
+                  args = list(mean = our_mu,
+                              sd = our_sigma)) + 
+    scale_color_manual("",values = c("blue"))+
+    scale_fill_manual("",values = c("gray"))+
+    labs(x = "Sample Percentages",
+         title = "Comparing Simulated Sampling Distribution to\na Normal Random Variable Model")+
+    theme_bw()
+```
+
+## One last question....
+So, where did I come up with the `mu` and `sigma` parameters?
+
+*Well, we're heading there next!*
+

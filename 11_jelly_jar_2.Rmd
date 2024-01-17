@@ -1,0 +1,167 @@
+---
+title: "A Jar of Jelly Beans, part 2"
+author: "P. Lombardo"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(patchwork)
+source('source_files/general.R')
+source('source_files/jelly.R')
+jelly_jar<-read.csv('data/jelly_jar.csv',header = T, stringsAsFactors = T)
+```
+
+### The Jelly Jar Challenge
+Recall our setting from last time. We have a *giant* jar of jelly beans with *over 20,000 beans* inside.  I open the following challenge to all Endicott Students: I will give \$1,000 to the person with the closest guess for *the percentage* of green jelly beans in the jar.
+
+* Each individual can request a sample of jelly beans, anywhere from 10 to 50.
+* You can make a "team" guess, but the members of the team are paid \$500 each.
+
+**Winning Strategy* *(well, probably the winner...)*:
+
+> strategy here...
+
+Why does this work?
+
+
+#### Is this the best we can do?
+Well, no, actually. We *can* do better!  
+
+* With some new probability tools, we can provide extra meaningful information about this jelly jar game (even if our guess will remain the same). 
+
+* Even better, these new tools allow us to use a similar approach on other games like, *"Guess the average weight of everyone at the carnival!"*.  
+    * OK, that's not a game, but my point is that we'll be able to work with a broader range of data if we develop these new tools.
+
+What kind of "meaningful information" can we provide? 
+
+**Permit me one final twist to my jelly bean jar guessing game:**
+
+Suppose that rather than guessing the percentage exactly, I ask each person to provide *a region* where the population percentage falls. For example, I might guess between 7\% and 10\%. 
+
+I will determine the winner by first looking at all the individuals or teams that had a region containing the actual percentage.  Then, the winning group or individual will be the one with *the smallest* region.  
+
+How might our strategy change? How should we choose our region?
+
+
+## Sampling Percentages
+Let's assume that you and three friends have decided to join together to make a guess. Combining your four samples of size 50, you will have a de facto sample of 200 jelly beans.
+
+The idea starts in a simple way. Rather than focusing on counts, let's look at percentages of green jelly beans in each sample.  Again, we will employ a sampling distribution to give us information for how this sampling process could unfold. Since this relies on the law of large numbers, we'll make sure our simulated sampling distribution has at least 5,000 sample percentages
+
+**Exercise.** Let's write a loop to collect 5,000 sample percentages using a sample size of 200. 
+
+* Remember `jelly_jar$color` has all the jelly bean colors in the jar, and we can use `sample()` to college a random sample. T
+* Then we just have to find the percentage of green in our sample, and keep looping!
+```{r}
+# create our storage vector
+set.seed(222)
+samp_dist_pct<-numeric(5000)
+
+# Write the loop
+
+
+# Here is a more streamlined way to generate the same samp_dist
+# samp_dist_pct<-sapply(1:5000, function(x){sum(sample(jelly_jar$color,200)=="green")/200})
+```
+
+
+## Exploring the sampling distribution of sample percentages
+The *actual* sampling distribution would have the sample percentage value for every possible sample.  We just collected 5,000 potential samples, but because of the law of large numbers, we will trust that this *simulated* sampling distribution will give us some important trends.
+
+At base, this sampling distribution of percentages is essentially a data set of quantitative measurements (percents). So, let's use some of the tools we have for quantitative data on it.
+
+**Exercise.** Compute the mean, median, and standard deviation of the percentages in `samp_dist_pct`. 
+
+(*Note:* `samp_dist_pct` is not stored as a data frame, so we will not use `summarize()` to compute these values. Just use the functions themselves.)
+```{r}
+# place code here
+
+```
+
+* What does the *mean of the sample percentages* tell us? How is this different from the median?
+
+
+* What does the *std. deviation of the sample percentages* tell us?
+
+
+* Consider the actual percentage of green jelly beans:
+```{r}
+sum(jelly_jar$color == "green")/nrow(jelly_jar)
+```
+*How does the real percentage compare with the mean of the sampling distribution?*
+
+
+***
+
+let's look at the histogram of values to make sure we're not dealing with a strange shape to our data.  Again, `samp_dist_ct` is not stored as a data frame, so we will do things a little differently below:
+```{r}
+ggplot()+
+    geom_histogram(aes(x = samp_dist_pct),
+                   bins= 32,
+                   color="white",alpha=.5)+
+    theme_bw()
+```
+
+* What do you notice about the "shape" of the data?
+    * How does this explain the mean and median being close?
+
+* Where does "most" of the values tend to fall?
+
+
+### Quantiles for the sampling distribution.
+Can we find where 95\% of the most common percents fall?
+```{r}
+# place code here
+
+```
+
+Let's visualize this:
+```{r}
+middle_region(samp_dist_pct)
+```
+
+
+How far is the edge of this "middle region" from the mean of the sampling distribution?
+
+
+Great! Ready to put this all together?  Here's what we know:
+
+1. About 95\% of our "most common" sample percentages from the jar fall in our middle region, which is roughly _____ away from the mean of the sampling distribution.
+2. The mean of the sampling distribution is basically the same as the ____.
+
+> If your team gathers one sample of size 200, it is likely that your sample falls in the middle region above.  This means *your sample is ____ away from the correct percentage!*
+
+So, if you were asked to guess a region, what would it be?
+
+<place your answer here>
+
+
+In your own words, describe how...
+
+1. This guess above does a good job making sure your region *actually contains* the real percentage.  How likely is it that your region is "correct"?
+
+
+2. The length of this region is not any wider than it has to be in order to achieve the likelihood of success mentioned in question 1.
+
+
+## Concluding remarks
+What we just worked out in class today is basically a *confidence interval*; an extremely useful statistical tool.  
+
+* Unlike hypothesis testing, the confidence interval approach directly addresses the question "*What is the percentage of green jelly's?*"  
+* Moreover, by guessing *a region* rather than single percentage, we clearly communicate how much variation we expect to come from the sampling process. In a sense, this quantifies "uncertainty" associated with our guess
+    * Wide confidence intervals have more "uncertainty" in the guess,
+    * Narrow confidence intervals have less "uncertainty" in the guess.
+    
+**Challenge:** Based on the "uncertainty" idea above, which confidence interval would you expect to be *wider*: an interval based on a sample of 30 jelly beans, or an interval based on a sample of 200?
+    
+Now, all of this relied on us being able to generate a sampling distribution for sample percentages, based on repeated sampling from the actual jelly bean jar.
+
+In statistics, we rarely "have the whole jar," and we definitely do not have the time and resources to do the repeated sampling we did here. So how do we get around this? 
+
+Well, by the beauty of mathematics, it turns out that many useful sampling distributions follow a well-known probability distribution: *The Normal Distribution*. And that, my friends, is where we go next!
+
+

@@ -1,0 +1,127 @@
+---
+title: "A Jar of Jelly Beans, part 1"
+author: "P. Lombardo"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(patchwork)
+source('source_files/general.R')
+source('source_files/jelly.R')
+jelly_jar<-read.csv('data/jelly_jar.csv',header = T, stringsAsFactors = T)
+```
+
+## A Classic Festival Game!
+As a child, I went to a harvest festival with my family.  At one of the tables, there was a *giant* jar of jelly beans.  For free, any child could pass in a guess at the number of green jelly beans in the jar, and at the end of the festival the child with the closest guess would take home the jar.
+
+Now, as a crusty, humorless adult, all I can think of is how this simple little game is *statistics, in a nutshell*. If you'll tolerate a stroll through my childhood memories, I'd like to show you why.
+
+### The Jelly Jar Challenge
+Suppose we have a *giant* jar of jelly beans with *over 20,000 beans* inside.  I open the following challenge to all Endicott Students: I will give \$1,000 to the person with the closest guess for *the percentage* of green jelly beans in the jar.
+
+**Stage 1:** Since I love my students, I will give each of you *one* sample to help inform your guess.  I will give you a random sample from the jar, and you can choose how many jelly beans you want in your sample, but the number must be between 10 and 50.  *How do you proceed?*
+
+<Place your answer here.>
+
+```{r}
+# I'll give you your sample here
+# set.seed to your birthday again (e.g. 3/5 would be set.seed(35) )
+set.seed(...)
+my_sample<-sample(jelly_jar$color,
+                  # choose your sample size
+                  ...
+                  )
+
+# Feel free to investigate your sample
+```
+
+
+**Stage 2:** Now suppose my challenge allows for "group guesses" where a group of students can submit a guess and if they are closest, then everyone in the group gets a \$500. *How does this change the game? How do you proceed now?*
+
+<Place your answer here.>
+
+
+**Stage 3:** Now suppose every student at Endicott could collect a sample.  What would be a good strategy now?
+
+<Place your answer here.>
+
+
+**Conclusion:** What is the theme I'm trying to highlight through these "stages", and how does it relate to the Law of Large Numbers?
+
+
+## Sampling Distributions and LLN
+As discussed above, 
+
+< Fill in strategy here ... >
+
+is a powerful strategy once we open up sampling to *every* student on campus.  
+
+Loosely speaking, this approach creates a *sampling distribution* for the statistic that counts the total number of green jelly beans in a sample.
+
+> A *Sampling Distribution* for a summary statistic can be thought of as the data set of these summaries obtained by looking at all possible (or a large number of) samples from the population.
+
+From the Law of Large Numbers, we know that a *large number* of repeated samples gives us very good information about the underlying probabilities of events.  So, if we were to look at the relative frequencies of the "total green jellies" data we collected, they should match pretty well with a good probability model for this jelly bean jar. Let's explore this idea.
+
+1. Let's use a loop to collect 10,000 samples of size 50 from our jelly jar:
+```{r}
+samp_dist<-numeric(10000)
+for (i in 1:10000){
+    # place loop instructions here.
+    # get a sample
+    
+    #store the count of green in the samp_dist vector, position i
+    
+}
+```
+
+2. Now let's compare a model based on a guess *from your sample only* to the relative frequencies of the sampling distribution. Remember, `my_sample` contains your sample of jelly beans from the jar.
+
+* What model should we use? *Define it below.*
+```{r}
+Xdist_my_guess <- data.frame(
+    space = ...,
+    pmf = ...
+)
+```
+
+* How do the PMF-values of your model compare to the relative frequencies of `samp_dist`?
+```{r}
+compare_table(Xdist_my_guess, samp_dist)
+```
+
+
+* Let's visualize the comparison instead. Use `compare_barplot(distribution, simulations)` to see a visual where the proposed probability model is in gray, and the sampling distribution rel. frequncies are blue.
+```{r}
+# Place code here
+```
+
+#### A little trial and error
+I made a little function called `trial_and_error(n,p, samp_dist)`. Set your own `n` and `p` values, and pass in the sampling distribution, and it will compare the sampling distribution against a binomial model with the `n` and `p` parameters.
+```{r}
+trial_and_error(50, 0.2, samp_dist) + 
+    coord_cartesian(xlim=c(0,20))
+```
+
+**Exercise.** Play around with the `p` parameter until it look like it fits the sampling distribution (blue bars) just right. What value did you arrive at?
+
+
+## So what can we say in summary?
+Here's a nice visual to sum things up:
+```{r}
+group_guessing()
+```
+
+What's the actual answer?
+```{r}
+
+```
+
+**Conclusions:**
+
+* We'll summarize here...
+* 
+

@@ -1,0 +1,168 @@
+---
+title: "Introduction to Random Variables and the Law of Large Numbers"
+author: "P. Lombardo"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(patchwork)
+source('source_files/general.R')
+source('source_files/coins.R')
+```
+
+
+# Probability and Law of Large Numbers
+Let's get started where all probability starts...
+
+## Coin Flipping!
+
+Use the `flip_coin(n,p)` function in the following way:
+
+* `n` allows you to flip a coin as many times as you want
+* `p` allows you to control the probability of heads. 
+
+Try "flipping a coin" 10 times with a probability of heads `p` = 0.5. Save the output of your function under the name `coin_record`.
+```{r}
+# place code here
+```
+
+How can you find the relative frequency of heads?  Well, since we want to count elements of a vector, let's try using the "logical vectors" we recently learned about to identify which flips in the `coin_record` are heads.
+```{r}
+#place code here.
+```
+
+**Exercise**: Modify the code above to compute the relative frequency of heads.
+```{r}
+# place modified code here:
+```
+
+**Exercise**:  Now "flip the coin" 10,000 times, and compute the relative frequency of heads in your `coin_record2`. 
+```{r}
+#Place code here.
+# Use the flip_coin() function, save output
+
+# compute relative frequency of Heads.
+```
+
+
+## Random Variables
+The primary tool that statisticians use to model data is a *random variable*, from the mathematical field of probability.  Loosely speaking, a random variable is simply the minimal information we need to understand two things:
+
+1. The potential values an outcome of interest might take on; we call this the ***space*** of the random variable.
+2. Enough "probability information" to compute the likelihood of potential events based on these outcomes; we will call this a "probability mass function" (or *pmf*), for now.
+
+(*We will fill this in with more detail as the class progresses, but this is good for now.*)
+
+One usually uses a capital letter to denote a random variable, like $X$.  Here is the random variable we will use for our coin flip example. It's basically just a table with potential outcomes and associated probabilities. We store this as a data frame in `R`:
+```{r}
+Xdist<-data.frame(
+    space = c(0,1),
+    pmf = c(0.5, 0.5),
+    row.names = c("tails","heads")
+)
+Xdist
+```
+
+* In most of our use cases, we will want use numbers for the space. In our example above, we let 0 represent "tails" and 1 represent "heads".
+* When the coin is fair, we can see that both 0 and 1 have the same PMF value of 0.5; if we had an unfair coin these would be modified.
+
+The plot below generates a "PMF plot" to help us visualize the distribution of $X$, as well as a comparison between the PMF plot and the barplot of relative frequencies from our coin flip simulation.
+```{r}
+# generate simulation samples; using flip_coin_number to return 0's and 1's
+coin_record2<-flip_coin_number(1000, p = .5)
+
+# saving plots to variable names
+p1<-discrete_pmf_plot(Xdist)
+p2<-compare_barplot(Xdist, coin_record2)
+
+# here I'm using the patchwork package to combine the plots side by side
+# (more on patchwork later)
+p1+p2
+```
+
+
+## Hey, isn't this a *statistics* class?
+Of course, you're right... what does this have to do with statistics? I don't see a lot of statisticians flipping coins in their office. 
+
+Well..., maybe not directly. However, consider these more "statistical" questions and the probabilistic re-framings:
+
+* Are a majority of Beverly residents in favor of stricter speed limit enforcement?
+    * If I ask 100 randomly selected residents their opinions, what percent are in favor?
+    
+> **Re-frame:** Is the probability of heads for this coin I just found 0.5 or more?
+>
+>   * If I flip the coin 100 times, will the rel. frequency of heads be over 0.5?
+
+Notice how in the re-frame, the *probability model* (probability of heads in this case) plays the role of the *population*. The "data side", or sampling side, plays the role of simulation.   Here's the point:
+
+> **Main Connection:** "Doing statistics" is completely analogous to using simulations to make an educated ***guess*** about an appropriate probability model.
+
+This analogy is a really powerful one for understanding statistics, so let's continue with this framework and ask some "statistics" questions about our *mystery_coin()*.
+
+## The *Mystery Coin*!
+That's right folks, through clandestine methods I have procured a *mystery coin* from Dr. McDaniel's office!  
+
+Here are two "statistics" questions I could ask about the coin:
+
+1. Is the coin fair? In other words, is the probability of heads equal to 0.5?
+2. What *is* the probability of heads for the coin?
+
+### Enlisting your help.
+Suppose I offer extra credit for the student that can help me answer these questions correctly.  Each of you had a few moments to inspect the coin, and even collect a 30-flip sample. Here are your results (remember: tails = 0 and heads = 1):
+```{r}
+# In the set.seed() function below, put your birthday.
+# for e.g., I might use set.seed(219) for a February 19th birthday.
+set.seed(...)
+my_flips<-mystery_coin(30)
+my_flips
+```
+
+**Exercise.** Based on your sample alone, make an argument addressing my two statistical questions: *Is the mystery coin fair?* and *What is the probability of heads?*
+
+<place your answer here>
+
+***
+
+OK, Now I'm going to leave the room for about five minutes.  If you have a better guess when I return, you may have a better chance at that extra credit! 
+
+*Rules:* 
+
+* No one is allowed to generate a new sample.
+* You may work with each other and talk to each other at this point.
+
+So, how did you approach this when I left the room?
+
+***
+
+### Gathering Evidence
+How do simulations help us gather evidence to answer our questions? Or, in statistics, how does *sample data* give us information about the population?  Let's look at some of the arguments and comment on the trends.
+
+1. ***Is the coin fair?***
+
+*Evidence and arguments:*
+
+```{r}
+# place code here.
+
+```
+
+
+
+2. ***What is the probability of heads for the coin?***
+
+*Evidence and arguments:*
+
+
+```{r}
+#place code here.
+
+```
+
+
+We can use `compare_barplot()` and `prob_curve()` to visualize evidence.
+
+
